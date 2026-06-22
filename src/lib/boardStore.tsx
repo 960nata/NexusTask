@@ -7,14 +7,16 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { auth } from '@/lib/firebase';
-import { 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged, 
-  updateProfile 
+import {
+  signInWithPopup,
+  signInWithRedirect,
+  GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+  type User as FirebaseUser
 } from 'firebase/auth';
 
 /* ──────────────────────────────────────────────────────────
@@ -294,7 +296,7 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
   const [scheduledMeets, setScheduledMeets] = useState<ScheduledMeet[]>([]);
   const [loaded, setLoaded] = useState(false);
 
-  const [fbUser, setFbUser] = useState<any | null>(null);
+  const [fbUser, setFbUser] = useState<FirebaseUser | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [guestMode, setGuestMode] = useState(false);
   const [toasts, setToasts] = useState<{ id: string; text: string; kind: NotifKind }[]>([]);
@@ -436,7 +438,17 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
   const loginWithGoogle = async () => {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (e: unknown) {
+      const code = (e as { code?: string })?.code;
+      // Popup blocked / not supported → fall back to full-page redirect.
+      if (code === 'auth/popup-blocked' || code === 'auth/cancelled-popup-request' || code === 'auth/operation-not-supported-in-environment') {
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+      throw e;
+    }
   };
 
   const loginWithEmail = async (email: string, pass: string) => {

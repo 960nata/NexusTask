@@ -2,320 +2,260 @@
 
 import React from 'react';
 import Link from 'next/link';
-import MarketingLayout from '@/components/MarketingLayout';
-import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles, CheckSquare, Settings, Calendar, Kanban, Palette, Users, MessageSquare, FlaskConical } from 'lucide-react';
+import { Kanban, Video, MessageSquare, ArrowRight, Check, Zap, Users, Clock, DollarSign } from 'lucide-react';
 
-export default function LandingPage() {
-  // Container animation configuration for staggered items
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  } as const;
+const Logo = ({ s = 34 }: { s?: number }) => (
+  <div style={{ width: s, height: s, background: '#AAFF00', borderRadius: s * 0.26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <svg width={s * 0.47} height={s * 0.47} viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" fill="#0E0E0E" /><rect x="14" y="3" width="7" height="7" rx="1.5" fill="#0E0E0E" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" fill="#0E0E0E" /><rect x="14" y="14" width="7" height="7" rx="1.5" fill="#0E0E0E" />
+    </svg>
+  </div>
+);
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } }
-  } as const;
+/* Faithful board mockup (browser-framed) — helpers hoisted to module scope */
+const shotCard = (labels: { b: string }[], lime = false, pct?: number, pctC = '#4A90FF') => (
+  <div style={{ background: lime ? '#AAFF00' : '#191919', border: lime ? 'none' : '1px solid #242424', borderRadius: 10, padding: 10, marginBottom: 9 }}>
+    <div style={{ display: 'flex', gap: 5, marginBottom: 8 }}>{labels.map((l, i) => <span key={i} style={{ width: 34, height: 9, borderRadius: 3, background: lime ? 'rgba(0,0,0,.15)' : l.b }} />)}</div>
+    <div style={{ height: 6, width: '85%', borderRadius: 3, background: lime ? 'rgba(0,0,0,.2)' : '#2A2A2A', marginBottom: 5 }} />
+    <div style={{ height: 6, width: '60%', borderRadius: 3, background: lime ? 'rgba(0,0,0,.2)' : '#2A2A2A' }} />
+    {pct !== undefined && <div style={{ height: 3, borderRadius: 2, background: lime ? 'rgba(0,0,0,.15)' : '#222', marginTop: 9, overflow: 'hidden' }}><div style={{ height: '100%', width: `${pct}%`, background: lime ? '#0E0E0E' : pctC, borderRadius: 2 }} /></div>}
+  </div>
+);
+const ShotCol = ({ dot, children }: { dot: string; children: React.ReactNode }) => (
+  <div style={{ flex: 1 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: dot }} /><span style={{ height: 7, width: 44, borderRadius: 3, background: '#2A2A2A' }} /></div>
+    {children}
+  </div>
+);
+function BoardShot() {
+  return (
+    <div style={{ background: '#141414', borderRadius: 16, overflow: 'hidden', border: '1px solid #1f1f1f', boxShadow: '0 32px 72px rgba(170,255,0,.10)' }}>
+      <div style={{ height: 40, background: '#1A1A1A', display: 'flex', alignItems: 'center', gap: 7, padding: '0 16px' }}>
+        <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#FF5F57' }} /><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#FFBD2E' }} /><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#28CA41' }} />
+        <div style={{ marginLeft: 12, height: 16, width: 200, borderRadius: 8, background: '#222' }} />
+      </div>
+      <div style={{ display: 'flex' }}>
+        <div style={{ width: 52, background: '#111', padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <Logo s={30} /><div style={{ width: 30, height: 30, borderRadius: 8, background: '#AAFF00' }} /><div style={{ width: 30, height: 30, borderRadius: 8, background: '#1C1C1C' }} /><div style={{ width: 30, height: 30, borderRadius: 8, background: '#1C1C1C' }} />
+        </div>
+        <div style={{ flex: 1, padding: 16, display: 'flex', gap: 12 }}>
+          <ShotCol dot="#444">{shotCard([{ b: '#0a1a3a' }, { b: '#2e1a0a' }], false, 30)}{shotCard([{ b: '#1A2E00' }])}</ShotCol>
+          <ShotCol dot="#AAFF00">{shotCard([{ b: '#1A2E00' }, { b: '#2e1a0a' }], true, 65)}{shotCard([{ b: '#1A2E00' }], false, 80, '#AAFF00')}</ShotCol>
+          <ShotCol dot="#FFB84A">{shotCard([{ b: '#2e220a' }], false, 100, '#FFB84A')}{shotCard([{ b: '#1a0a2e' }])}</ShotCol>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const Badge = ({ children, lime = false }: { children: React.ReactNode; lime?: boolean }) => (
+  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: lime ? '#1A2E00' : '#1A1A1A', border: `1px solid ${lime ? '#AAFF0033' : '#242424'}`, borderRadius: 100, padding: lime ? '6px 16px' : '5px 16px', marginBottom: 20 }}>
+    {lime && <span className="nx-pulse" style={{ width: 6, height: 6, background: '#AAFF00', borderRadius: '50%' }} />}
+    <span style={{ fontSize: lime ? 12 : 11, color: lime ? '#AAFF00' : '#555', fontWeight: 700, letterSpacing: '.06em' }}>{children}</span>
+  </div>
+);
+
+export default function NexusLanding() {
+  const features = [
+    { Icon: Kanban, title: 'Papan Kanban', desc: 'Kelola tugas tim dengan visual drag-and-drop. Lacak progres setiap pekerjaan secara real-time tanpa ribet.' },
+    { Icon: Video, title: 'Video Meeting', desc: 'Mulai meeting langsung dari board tanpa keluar aplikasi. Screen share dan rekam dalam satu klik.' },
+    { Icon: MessageSquare, title: 'Chat Real-time', desc: 'Diskusi per task, per channel, atau personal. Semua percakapan terhubung langsung ke kartu tugas.' },
+  ];
+  const points = [
+    { t: 'Drag-and-drop intuitif', d: 'Pindahkan kartu antar kolom dengan satu gerakan.' },
+    { t: 'Label, due date, assignee', d: 'Semua info penting dalam satu kartu.' },
+    { t: 'Update real-time', d: 'Perubahan langsung terlihat oleh seluruh tim.' },
+  ];
+  const steps = [
+    { n: '1', title: 'Buat Board', desc: 'Daftar gratis, buat board pertama, dan tambah kolom sesuai alur kerja timmu.', primary: true },
+    { n: '2', title: 'Undang Tim', desc: 'Kirim invite ke rekan kerja lewat email. Mereka langsung bisa akses board, chat, dan meeting.' },
+    { n: '3', title: 'Mulai Kerja & Meeting', desc: 'Assign tugas, chat, dan video meeting — semua dari satu tempat. Produktivitas naik, aplikasi berkurang.' },
+  ];
+  const why = [
+    { Icon: DollarSign, t: '100% Gratis — selamanya', d: 'Tidak ada trial. Tidak ada kartu kredit.' },
+    { Icon: Zap, t: 'Kanban + Video + Chat dalam satu tab', d: 'Ganti 3 aplikasi dengan 1 platform.' },
+    { Icon: Clock, t: 'Setup dalam 5 menit', d: 'Daftar, buat board, undang tim — langsung produktif.' },
+    { Icon: Users, t: 'Real-time untuk seluruh tim', d: 'Tidak perlu refresh. Semua sinkron otomatis.' },
+  ];
+  const compare = ['Kanban board', 'Video meeting', 'Chat real-time', 'Satu aplikasi', 'Harga'];
 
   return (
-    <MarketingLayout>
-      {/* Hero Section */}
-      <section className="text-center pt-20 pb-16 flex flex-col items-center relative">
-        {/* Sparkle micro-badge */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#AAFF00]/10 border border-[#AAFF00]/25 text-[#AAFF00] text-[10px] font-bold uppercase tracking-wider mb-6 shadow-[0_0_15px_rgba(170,255,0,0.05)]"
-        >
-          <Sparkles size={11} className="animate-pulse" />
-          <span>Didukung Otomatisasi AI Cerdas</span>
-        </motion.div>
+    <div style={{ fontFamily: "var(--font-space-grotesk), 'Space Grotesk', sans-serif", background: '#0E0E0E', color: '#fff', overflowX: 'hidden', minHeight: '100vh' }}>
+      <style>{`
+        @keyframes nxpulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+        @keyframes nxfloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+        .nx-pulse{ animation:nxpulse 2s infinite }
+        .nx-float{ animation:nxfloat 6s ease-in-out infinite }
+        .nx-link{ transition:color .2s } .nx-link:hover{ color:#fff !important }
+        .nx-ghost{ transition:all .2s } .nx-ghost:hover{ color:#fff !important; border-color:#444 !important }
+        .nx-cta{ transition:background .2s } .nx-cta:hover{ background:#C8FF40 !important }
+        .nx-card{ transition:all .2s } .nx-card:hover{ border-color:#AAFF0050 !important; background:#161616 !important }
+        .nx-pad{ padding:0 72px } .nx-grid2{ grid-template-columns:1fr 1fr }
+        @media (max-width:900px){ .nx-pad{ padding:0 22px } .nx-grid2{ grid-template-columns:1fr !important } .nx-hide{ display:none !important } .nx-h1{ font-size:40px !important } }
+      `}</style>
 
-        <motion.h1 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white max-w-3xl leading-[1.1] mb-6"
-        >
-          Kelola Proyek Anda Tanpa Batas Dengan <span className="text-[#AAFF00] drop-shadow-[0_0_20px_rgba(170,255,0,0.25)]">TaskFlow</span>
-        </motion.h1>
-
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-zinc-400 text-sm sm:text-base max-w-2xl leading-relaxed mb-10"
-        >
-          Platform manajemen proyek self-hosted, responsif, dan ultra-premium. Didesain dengan gaya flat card minimalis yang modern, didukung otomatisasi cerdas, kalender terintegrasi, dan timeline visual.
-        </motion.p>
-
-        {/* Hero CTA Buttons */}
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md sm:max-w-none"
-        >
-          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
-            <Link
-              href="/app"
-              className="w-full sm:w-auto bg-[#AAFF00] hover:bg-[#b5ff1a] text-zinc-950 font-extrabold text-xs px-8 py-4 rounded-xl transition-all duration-300 shadow-[0_10px_25px_-5px_rgba(170,255,0,0.3)] hover:shadow-[0_15px_30px_-5px_rgba(170,255,0,0.45)] flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Mulai Kerja Sekarang</span>
-              <ArrowRight size={14} />
-            </Link>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
-            <Link
-              href="/features"
-              className="w-full sm:w-auto bg-[#161619] hover:bg-[#1e1e24] border border-[#242429] hover:border-zinc-700 text-zinc-300 hover:text-white font-extrabold text-xs px-8 py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
-            >
-              Pelajari Fitur
-            </Link>
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* Experimental notice */}
-      <motion.section 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        className="max-w-3xl mx-auto w-full mb-8"
-      >
-        <div className="flex items-start gap-3.5 bg-[#2a2410]/30 border border-[#FFB84A]/20 rounded-2xl p-4.5 backdrop-blur-sm">
-          <FlaskConical size={18} className="text-[#FFB84A] mt-0.5 flex-none animate-bounce" />
-          <div>
-            <div className="text-[#FFB84A] text-xs font-bold mb-1">Proyek Eksperimental</div>
-            <p className="text-zinc-400 text-[11px] leading-relaxed">
-              TaskFlow adalah proyek eksperimental manajemen papan kerja (Kanban) yang terintegrasi secara langsung dengan PostgreSQL lokal melalui Prisma. Fitur ini dirancang untuk kemudahan kustomisasi mandiri, real-time sync, dan fleksibilitas optimal.
-            </p>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Kanban Board Visual Mockup */}
-      <motion.section 
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.5, ease: 'easeOut' }}
-        className="my-12 w-full max-w-4xl mx-auto"
-      >
-        <div className="bg-[#111111] border border-[#1D1D21] rounded-2xl p-4 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative group">
-          {/* Mockup header */}
-          <div className="flex items-center justify-between mb-4 border-b border-[#1D1D21] pb-3">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-red-500/80" />
-              <span className="w-3 h-3 rounded-full bg-yellow-500/80" />
-              <span className="w-3 h-3 rounded-full bg-green-500/80" />
-            </div>
-            <div className="text-[10px] text-zinc-500 font-semibold bg-zinc-900/60 px-3 py-1 rounded-md border border-[#1D1D21]">
-              workspace/ratu-jaya-tani/mobile-app
-            </div>
-            <div className="w-8" />
-          </div>
-
-          {/* Mockup Board Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Col 1 */}
-            <div className="bg-[#131315]/80 border border-[#1D1D21] rounded-xl p-3">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  Ide <span className="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.2 rounded-full">2</span>
-                </span>
-              </div>
-              <div className="flex flex-col gap-2">
-                <motion.div whileHover={{ y: -3, scale: 1.01 }} className="kanban-card p-[3px] bg-[#191919] border border-[#1D1D21] rounded-[14px] cursor-pointer">
-                  <div className="p-2.5 flex flex-col">
-                    <span className="self-start px-2 py-0.5 rounded-[5px] text-[8px] bg-zinc-800 text-zinc-350 font-bold mb-1.5">IDE</span>
-                    <h4 className="text-[11px] font-semibold text-zinc-200">Desain Splash Screen</h4>
-                  </div>
-                </motion.div>
-                <motion.div whileHover={{ y: -3, scale: 1.01 }} className="kanban-card p-[3px] bg-[#191919] border border-[#1D1D21] rounded-[14px] cursor-pointer">
-                  <div className="p-2.5 flex flex-col">
-                    <span className="self-start px-2 py-0.5 rounded-[5px] text-[8px] bg-blue-900/60 text-blue-200 font-bold mb-1.5">FEATURE</span>
-                    <h4 className="text-[11px] font-semibold text-zinc-200">Arsitektur DB Baru</h4>
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-
-            {/* Col 2 (lime featured card) */}
-            <div className="bg-[#131315]/80 border border-[#1D1D21] rounded-xl p-3">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  Sedang Dikerjakan <span className="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.2 rounded-full">1</span>
-                </span>
-              </div>
-              <motion.div whileHover={{ y: -3, scale: 1.02 }} className="kanban-card p-[3px] bg-[#AAFF00] border border-[#AAFF00] rounded-[14px] cursor-pointer shadow-[0_5px_15px_rgba(170,255,0,0.15)]">
-                <div className="p-2.5 flex flex-col text-zinc-950">
-                  <div className="flex gap-1 mb-1.5">
-                    <span className="px-2 py-0.5 rounded-[5px] text-[8px] bg-black/12 font-bold text-zinc-950">URGENT</span>
-                    <span className="px-2 py-0.5 rounded-[5px] text-[8px] bg-black/12 font-bold text-zinc-950">FEATURE</span>
-                  </div>
-                  <h4 className="text-[11px] font-bold text-zinc-950 leading-snug">Implementasi Log Masuk Google</h4>
-                  <div className="mt-3 w-full h-[3px] rounded-full bg-black/10 overflow-hidden">
-                    <div className="h-full bg-zinc-950" style={{ width: '65%' }} />
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Col 3 */}
-            <div className="bg-[#131315]/80 border border-[#1D1D21] rounded-xl p-3">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  Selesai ✅ <span className="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.2 rounded-full">1</span>
-                </span>
-              </div>
-              <div className="kanban-card p-[3px] bg-[#141414] border border-[#1D1D21] rounded-[14px] opacity-50">
-                <div className="p-2.5 flex flex-col">
-                  <span className="self-start px-2 py-0.5 rounded-[5px] text-[8px] bg-[#22c55e]/10 text-green-400 font-bold mb-1.5">DONE</span>
-                  <h4 className="text-[11px] font-semibold text-zinc-500 line-through">Pengaturan CI/CD Pipeline</h4>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Value Proposition Cards Grid */}
-      <section className="py-16 w-full max-w-5xl mx-auto">
-        <motion.h2 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="text-2xl sm:text-3xl font-extrabold text-white text-center mb-12"
-        >
-          Fitur Utama Platform
-        </motion.h2>
-
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
-        >
-          {/* Card 1 */}
-          <motion.div variants={itemVariants} whileHover={{ y: -5 }} className="bg-[#161619] border border-[#1E1E22] rounded-2xl p-5.5 hover:border-zinc-800 transition-all duration-300">
-            <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center mb-4.5">
-              <Sparkles size={18} />
-            </div>
-            <h3 className="text-sm font-bold text-white mb-2">Checklist Cerdas AI</h3>
-            <p className="text-zinc-500 text-[11px] leading-relaxed">
-              Membuat rincian subtask otomatis hanya berdasarkan judul kartu dengan integrasi API kecerdasan buatan.
-            </p>
-          </motion.div>
-
-          {/* Card 2 */}
-          <motion.div variants={itemVariants} whileHover={{ y: -5 }} className="bg-[#161619] border border-[#1E1E22] rounded-2xl p-5.5 hover:border-zinc-800 transition-all duration-300">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mb-4.5">
-              <Settings size={18} />
-            </div>
-            <h3 className="text-sm font-bold text-white mb-2">Automasi Butler 🤖</h3>
-            <p className="text-zinc-500 text-[11px] leading-relaxed">
-              Atur pemicu khusus seperti pelabelan otomatis dan check-off checklist ketika memindahkan kartu.
-            </p>
-          </motion.div>
-
-          {/* Card 3 */}
-          <motion.div variants={itemVariants} whileHover={{ y: -5 }} className="bg-[#161619] border border-[#1E1E22] rounded-2xl p-5.5 hover:border-zinc-800 transition-all duration-300">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center mb-4.5">
-              <Calendar size={18} />
-            </div>
-            <h3 className="text-sm font-bold text-white mb-2">Gantt & Kalender</h3>
-            <p className="text-zinc-500 text-[11px] leading-relaxed">
-              Pantau jadwal kerja bulanan dengan kalender interaktif dan pelacakan timeline visual Gantt Chart.
-            </p>
-          </motion.div>
-
-          {/* Card 4 */}
-          <motion.div variants={itemVariants} whileHover={{ y: -5 }} className="bg-[#161619] border border-[#1E1E22] rounded-2xl p-5.5 hover:border-[#AAFF00]/40 transition-all duration-300">
-            <div className="w-10 h-10 rounded-xl bg-[#AAFF00]/10 border border-[#AAFF00]/20 text-[#AAFF00] flex items-center justify-center mb-4.5">
-              <Kanban size={18} />
-            </div>
-            <h3 className="text-sm font-bold text-white mb-2">Flat Card Density</h3>
-            <p className="text-zinc-500 text-[11px] leading-relaxed">
-              Kepadatan letak kartu 3px dirancang untuk efisiensi ruang kerja tingkat tinggi bagi developer profesional.
-            </p>
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* What can be customized */}
-      <section className="py-16 w-full max-w-5xl mx-auto">
-        <motion.h2 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="text-2xl sm:text-3xl font-extrabold text-white text-center mb-2"
-        >
-          Kustomisasi Penuh
-        </motion.h2>
-        <p className="text-zinc-500 text-xs text-center mb-12">Hampir semua aspek alur kerja bisa disesuaikan dengan kebutuhan tim.</p>
-        
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
-        >
-          {[
-            { Icon: Palette, t: 'Tema warna', d: '6 palet warna aksen (lime, cyan, blue, dll) — ubah instan lewat Settings.' },
-            { Icon: Users, t: 'User & role', d: 'Kelola tim dengan hak akses (Superadmin/Owner/Manager/Member) dan avatar kustom.' },
-            { Icon: Kanban, t: 'Multi-Board', d: 'Buat banyak papan kerja terpisah, atur list, kolom, dan posisi secara dinamis.' },
-            { Icon: CheckSquare, t: 'Kartu Detail', d: 'Tentukan label warna, tanggal tempo, anggota terkait, checklist, dan log aktivitas.' },
-            { Icon: MessageSquare, t: 'Real-time Chat & Meeting', d: 'Obrolan grup internal dan video meeting native WebRTC langsung tanpa plugin tambahan.' },
-            { Icon: Sparkles, t: 'Generasi AI', d: 'Lengkapi rincian checklist kerja secara otomatis didukung model bahasa AI.' },
-          ].map(({ Icon, t, d }) => (
-            <motion.div variants={itemVariants} whileHover={{ y: -4 }} key={t} className="bg-[#161619] border border-[#1E1E22] rounded-2xl p-5.5 hover:border-zinc-800 transition-all duration-300">
-              <div className="w-10 h-10 rounded-xl bg-[#AAFF00]/10 border border-[#AAFF00]/25 text-[#AAFF00] flex items-center justify-center mb-4">
-                <Icon size={18} />
-              </div>
-              <h3 className="text-sm font-bold text-white mb-2">{t}</h3>
-              <p className="text-zinc-500 text-[11px] leading-relaxed">{d}</p>
-            </motion.div>
+      {/* 1. NAVBAR */}
+      <nav className="nx-pad" style={{ position: 'sticky', top: 0, zIndex: 999, display: 'flex', alignItems: 'center', height: 66, background: 'rgba(14,14,14,.94)', borderBottom: '1px solid #1A1A1A', backdropFilter: 'blur(20px)', gap: 40 }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flex: 'none' }}>
+          <Logo /><span style={{ fontSize: 17, fontWeight: 800, color: '#fff', letterSpacing: '-.02em' }}>Nexus Task</span>
+        </Link>
+        <div className="nx-hide" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 36 }}>
+          {[['Fitur', '#fitur'], ['Cara Kerja', '#cara-kerja'], ['Kenapa Nexus', '#kenapa']].map(([t, h]) => (
+            <a key={h} href={h} className="nx-link" style={{ fontSize: 14, color: '#666', textDecoration: 'none', fontWeight: 500 }}>{t}</a>
           ))}
-        </motion.div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 'none', marginLeft: 'auto' }}>
+          <Link href="/app" className="nx-ghost" style={{ fontSize: 13, fontWeight: 600, color: '#666', textDecoration: 'none', padding: '9px 20px', borderRadius: 10, border: '1px solid #2A2A2A' }}>Masuk</Link>
+          <Link href="/app" className="nx-cta" style={{ fontSize: 13, fontWeight: 700, color: '#0E0E0E', textDecoration: 'none', background: '#AAFF00', padding: '9px 20px', borderRadius: 10 }}>Daftar Gratis</Link>
+        </div>
+      </nav>
+
+      {/* 2. HERO */}
+      <section className="nx-pad nx-grid2" style={{ paddingTop: 90, paddingBottom: 80, display: 'grid', gap: 64, alignItems: 'center', maxWidth: 1320, margin: '0 auto' }}>
+        <div>
+          <Badge lime>ALL-IN-ONE WORKSPACE · GRATIS</Badge>
+          <h1 className="nx-h1" style={{ fontSize: 58, fontWeight: 800, lineHeight: 1.06, letterSpacing: '-.035em', color: '#fff', marginBottom: 22 }}>Tugas, Chat, dan Meeting —<br /><span style={{ color: '#AAFF00' }}>Semua di Satu Tempat.</span></h1>
+          <p style={{ fontSize: 17, color: '#666', lineHeight: 1.75, marginBottom: 34, maxWidth: 460 }}>Nexus Task menggabungkan Kanban board, video meeting, dan chat tim dalam satu platform. Tidak perlu lagi buka Trello, Zoom, dan Slack secara terpisah.</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+            <Link href="/app" className="nx-cta" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#AAFF00', color: '#0E0E0E', fontSize: 15, fontWeight: 800, textDecoration: 'none', padding: '15px 30px', borderRadius: 14, boxShadow: '0 8px 28px rgba(170,255,0,.25)' }}>Mulai Gratis <ArrowRight size={15} /></Link>
+            <span style={{ fontSize: 13, color: '#444' }}>Tidak perlu kartu kredit</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 28, marginTop: 48, paddingTop: 34, borderTop: '1px solid #1A1A1A' }}>
+            {[['12K+', 'Tim aktif', '#fff'], ['3-in-1', 'Aplikasi dalam satu', '#fff'], ['Gratis', 'Selamanya', '#AAFF00']].map(([v, l, c], i) => (
+              <React.Fragment key={l}>
+                {i > 0 && <div style={{ width: 1, height: 38, background: '#1A1A1A' }} />}
+                <div><div style={{ fontSize: 28, fontWeight: 800, color: c, letterSpacing: '-.02em' }}>{v}</div><div style={{ fontSize: 12, color: '#444', marginTop: 2 }}>{l}</div></div>
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+        <div className="nx-float" style={{ position: 'relative' }}>
+          <BoardShot />
+          <div style={{ position: 'absolute', bottom: -18, right: -10, background: '#AAFF00', borderRadius: 14, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 8px 28px rgba(170,255,0,.35)' }}>
+            <Check size={13} color="#0E0E0E" strokeWidth={3} /><span style={{ fontSize: 12, fontWeight: 700, color: '#0E0E0E' }}>24 tugas selesai hari ini</span>
+          </div>
+        </div>
       </section>
 
-      {/* Self-Hosted Call to Action */}
-      <motion.section 
-        initial={{ opacity: 0, scale: 0.95 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-        className="bg-[#111111] border border-[#1D1D21] rounded-2xl p-8 sm:p-10 text-center max-w-4xl mx-auto my-10 relative overflow-hidden"
-      >
-        {/* Background glow overlay */}
-        <div className="absolute -right-32 -bottom-32 w-64 h-64 bg-[#AAFF00]/5 rounded-full blur-[85px] pointer-events-none" />
-        <div className="absolute -left-32 -top-32 w-64 h-64 bg-teal-500/5 rounded-full blur-[85px] pointer-events-none" />
-        
-        <h3 className="text-xl sm:text-2xl font-extrabold text-white mb-3">Amankan Data Anda, Jalankan Secara Mandiri</h3>
-        <p className="text-zinc-400 text-xs sm:text-sm max-w-xl mx-auto mb-8 leading-relaxed">
-          TaskFlow terintegrasi dengan database PostgreSQL lokal Anda melalui ORM Prisma. Anda memegang kontrol penuh atas data, performa, dan privasi papan kerja Anda.
-        </p>
-        
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-block">
-          <Link
-            href="/app"
-            className="bg-[#AAFF00] hover:bg-[#b5ff1a] text-zinc-950 font-extrabold text-xs px-8 py-3.5 rounded-xl transition-all duration-300 inline-flex items-center gap-2 shadow-[0_8px_20px_-4px_rgba(170,255,0,0.25)] hover:shadow-[0_12px_24px_-4px_rgba(170,255,0,0.4)] cursor-pointer"
-          >
-            <span>Buka Papan Kerja</span>
-            <ArrowRight size={14} />
-          </Link>
-        </motion.div>
-      </motion.section>
-    </MarketingLayout>
+      {/* 3. FITUR INTI */}
+      <section id="fitur" className="nx-pad" style={{ padding: '96px 72px', background: '#111', borderTop: '1px solid #1A1A1A', borderBottom: '1px solid #1A1A1A' }}>
+        <div style={{ maxWidth: 1176, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 56 }}>
+            <Badge>FITUR INTI</Badge>
+            <h2 style={{ fontSize: 44, fontWeight: 800, letterSpacing: '-.025em', lineHeight: 1.1 }}>Satu platform, <span style={{ color: '#AAFF00' }}>tiga kekuatan.</span></h2>
+          </div>
+          <div className="nx-grid3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 20 }}>
+            {features.map(({ Icon, title, desc }) => (
+              <div key={title} className="nx-card" style={{ background: '#141414', border: '1px solid #1E1E1E', borderRadius: 22, padding: '34px 30px', cursor: 'pointer' }}>
+                <div style={{ width: 54, height: 54, background: '#1A2E00', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 22 }}><Icon size={24} color="#AAFF00" /></div>
+                <h3 style={{ fontSize: 21, fontWeight: 700, color: '#fff', marginBottom: 12 }}>{title}</h3>
+                <p style={{ fontSize: 14, color: '#666', lineHeight: 1.75 }}>{desc}</p>
+                <div style={{ marginTop: 26, display: 'flex', alignItems: 'center', gap: 6, color: '#AAFF00', fontSize: 13, fontWeight: 600 }}><span>Pelajari lebih lanjut</span><ArrowRight size={14} /></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. DEEP-DIVE: Board */}
+      <section className="nx-pad nx-grid2" style={{ padding: '100px 72px', maxWidth: 1320, margin: '0 auto', display: 'grid', gap: 64, alignItems: 'center' }}>
+        <div style={{ background: '#141414', border: '1px solid #1E1E1E', borderRadius: 24, padding: 24, position: 'relative' }}>
+          <BoardShot />
+          <div style={{ position: 'absolute', bottom: -16, right: -16, background: '#AAFF00', borderRadius: 12, padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 7, boxShadow: '0 6px 20px rgba(170,255,0,.3)' }}>
+            <Zap size={12} color="#0E0E0E" /><span style={{ fontSize: 11, fontWeight: 700, color: '#0E0E0E' }}>Live update untuk semua tim</span>
+          </div>
+        </div>
+        <div>
+          <Badge lime>PAPAN KANBAN</Badge>
+          <h2 style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-.025em', lineHeight: 1.12, color: '#fff', marginBottom: 18 }}>Semua tugas terlihat jelas, setiap saat.</h2>
+          <p style={{ fontSize: 15, color: '#666', lineHeight: 1.8, marginBottom: 30 }}>Buat board untuk setiap proyek, drag kartu antar kolom, dan lihat progres tim secara live. Tidak ada lagi tugas yang terlupakan.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {points.map((p) => (
+              <div key={p.t} style={{ display: 'flex', gap: 13, alignItems: 'flex-start' }}>
+                <div style={{ width: 26, height: 26, background: '#1A2E00', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', marginTop: 1 }}><Check size={14} color="#AAFF00" /></div>
+                <div><div style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 2 }}>{p.t}</div><div style={{ fontSize: 13, color: '#666' }}>{p.d}</div></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. CARA KERJA */}
+      <section id="cara-kerja" className="nx-pad" style={{ padding: '96px 72px', background: '#111', borderTop: '1px solid #1A1A1A', borderBottom: '1px solid #1A1A1A' }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto', textAlign: 'center' }}>
+          <Badge>CARA KERJA</Badge>
+          <h2 style={{ fontSize: 44, fontWeight: 800, letterSpacing: '-.025em', lineHeight: 1.1, marginBottom: 56 }}>Mulai dalam <span style={{ color: '#AAFF00' }}>3 langkah.</span></h2>
+          <div className="nx-grid3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 24 }}>
+            {steps.map((s) => (
+              <div key={s.n} style={{ background: '#141414', border: '1px solid #1E1E1E', borderRadius: 22, padding: '38px 30px', textAlign: 'center' }}>
+                <div style={{ width: 68, height: 68, background: s.primary ? '#AAFF00' : '#1A2E00', border: s.primary ? 'none' : '2px solid #AAFF00', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: s.primary ? '0 8px 28px rgba(170,255,0,.28)' : 'none' }}><span style={{ fontSize: 30, fontWeight: 800, color: s.primary ? '#0E0E0E' : '#AAFF00' }}>{s.n}</span></div>
+                <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 12 }}>{s.title}</h3>
+                <p style={{ fontSize: 14, color: '#666', lineHeight: 1.75 }}>{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 6. KENAPA NEXUS TASK */}
+      <section id="kenapa" className="nx-pad nx-grid2" style={{ padding: '100px 72px', maxWidth: 1320, margin: '0 auto', display: 'grid', gap: 64, alignItems: 'center' }}>
+        <div>
+          <Badge lime>KENAPA NEXUS TASK</Badge>
+          <h2 style={{ fontSize: 44, fontWeight: 800, letterSpacing: '-.025em', lineHeight: 1.1, color: '#fff', marginBottom: 18 }}>Bukan 3 aplikasi. <span style={{ color: '#AAFF00' }}>Satu.</span></h2>
+          <p style={{ fontSize: 15, color: '#666', lineHeight: 1.8, marginBottom: 32 }}>Tim rata-rata habis 2+ jam sehari berpindah antara Trello, Zoom, dan Slack. Nexus Task menghilangkan itu semua.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {why.map(({ Icon, t, d }) => (
+              <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', background: '#141414', border: '1px solid #1E1E1E', borderRadius: 14 }}>
+                <div style={{ width: 34, height: 34, background: '#1A2E00', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Icon size={16} color="#AAFF00" /></div>
+                <div><div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{t}</div><div style={{ fontSize: 12, color: '#666' }}>{d}</div></div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{ background: '#141414', border: '1px solid #1E1E1E', borderRadius: 24, overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 70px 80px', padding: '20px 24px', background: '#111', borderBottom: '1px solid #1E1E1E' }}>
+            <span style={{ fontSize: 12, color: '#444', fontWeight: 700 }}>Fitur</span>
+            <span style={{ fontSize: 12, color: '#444', fontWeight: 700, textAlign: 'center' }}>3 Apps</span>
+            <span style={{ fontSize: 12, color: '#AAFF00', fontWeight: 800, textAlign: 'center' }}>Nexus ✦</span>
+          </div>
+          {compare.map((row, i) => (
+            <div key={row} style={{ display: 'grid', gridTemplateColumns: '1fr 70px 80px', padding: '15px 24px', borderBottom: i < compare.length - 1 ? '1px solid #1A1A1A' : 'none', alignItems: 'center' }}>
+              <span style={{ fontSize: 13, color: '#888' }}>{row}</span>
+              <div style={{ textAlign: 'center', color: i === 4 ? '#666' : '#444', fontSize: 12 }}>{i === 4 ? '$$$' : '○'}</div>
+              <div style={{ textAlign: 'center' }}><span style={{ display: 'inline-flex', width: 20, height: 20, borderRadius: '50%', background: '#1A2E00', alignItems: 'center', justifyContent: 'center' }}>{i === 4 ? <span style={{ fontSize: 10, color: '#AAFF00', fontWeight: 800 }}>$0</span> : <Check size={12} color="#AAFF00" />}</span></div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 7. CTA PENUTUP */}
+      <section className="nx-pad" style={{ padding: '40px 72px 90px' }}>
+        <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg,#141414,#0E0E0E)', border: '1px solid #1E1E1E', borderRadius: 28, padding: '64px 40px', textAlign: 'center', maxWidth: 1176, margin: '0 auto' }}>
+          <div style={{ position: 'absolute', right: -120, bottom: -120, width: 300, height: 300, background: 'rgba(170,255,0,.08)', borderRadius: '50%', filter: 'blur(80px)' }} />
+          <h2 style={{ position: 'relative', fontSize: 42, fontWeight: 800, letterSpacing: '-.025em', color: '#fff', marginBottom: 14 }}>Siap kerja lebih rapi?</h2>
+          <p style={{ position: 'relative', fontSize: 16, color: '#666', marginBottom: 32, maxWidth: 460, margin: '0 auto 32px' }}>Mulai gratis sekarang — tugas, chat, dan meeting tim kamu dalam satu tempat.</p>
+          <Link href="/app" className="nx-cta" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 10, background: '#AAFF00', color: '#0E0E0E', fontSize: 15, fontWeight: 800, textDecoration: 'none', padding: '15px 32px', borderRadius: 14, boxShadow: '0 10px 30px rgba(170,255,0,.35)' }}>Daftar Gratis Sekarang <ArrowRight size={16} /></Link>
+        </div>
+      </section>
+
+      {/* 8. FOOTER */}
+      <footer className="nx-pad" style={{ borderTop: '1px solid #1A1A1A', padding: '44px 72px' }}>
+        <div style={{ maxWidth: 1176, margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Logo s={26} /><span style={{ fontSize: 15, fontWeight: 800 }}>Nexus Task</span></div>
+            <a href="mailto:support@nexustask.app" style={{ fontSize: 12, color: '#555', textDecoration: 'none' }}>support@nexustask.app</a>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, fontSize: 13, color: '#666' }}>
+            <a href="#fitur" style={{ color: '#666', textDecoration: 'none' }}>Fitur</a>
+            <a href="#cara-kerja" style={{ color: '#666', textDecoration: 'none' }}>Cara Kerja</a>
+            <Link href="/privacy" style={{ color: '#666', textDecoration: 'none' }}>Privasi</Link>
+            <Link href="/terms" style={{ color: '#666', textDecoration: 'none' }}>Syarat</Link>
+            <Link href="/app" style={{ color: '#AAFF00', textDecoration: 'none' }}>Aplikasi</Link>
+          </div>
+          <div style={{ fontSize: 12, color: '#444' }}>© {new Date().getFullYear()} Nexus Task</div>
+        </div>
+      </footer>
+    </div>
   );
 }
