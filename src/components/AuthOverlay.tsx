@@ -49,8 +49,19 @@ export default function AuthOverlay() {
     try {
       await loginWithGoogle();
     } catch (err) {
-      const e2 = err as { code?: string };
-      if (e2.code !== 'auth/popup-closed-by-user') setError('Gagal masuk dengan Google. Coba lagi.');
+      console.error('Google sign-in error:', err);
+      const c = (err as { code?: string }).code || '';
+      if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') {
+        // user closed the popup — not an error
+      } else if (c === 'auth/unauthorized-domain') {
+        setError('Domain ini belum diizinkan. Firebase Console → Authentication → Settings → Authorized domains → tambahkan domain kamu (mis. localhost).');
+      } else if (c === 'auth/operation-not-allowed') {
+        setError('Login Google belum diaktifkan. Firebase Console → Authentication → Sign-in method → aktifkan Google.');
+      } else if (c === 'auth/configuration-not-found') {
+        setError('Konfigurasi Auth belum lengkap. Aktifkan Google sign-in di Firebase Console dulu.');
+      } else {
+        setError(`Gagal masuk dengan Google${c ? ` (${c})` : ''}. Cek console untuk detail.`);
+      }
     } finally {
       setLoading(false);
     }

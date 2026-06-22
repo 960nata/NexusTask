@@ -100,7 +100,32 @@ export function useMeeting({ roomId, selfName, active }: { roomId: string; selfN
         setCams(devs.filter((d) => d.kind === 'videoinput').map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Kamera ${i + 1}` })));
         setMics(devs.filter((d) => d.kind === 'audioinput').map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Mikrofon ${i + 1}` })));
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Tidak bisa akses kamera/mikrofon');
+        if (cancelled) return;
+        // Camera may be busy / blocked ("Timeout starting video source").
+        // Degrade gracefully: retry with audio-only so the user can still join.
+        try {
+          const audioOnly = await navigator.mediaDevices.getUserMedia({ audio: micId ? { deviceId: { exact: micId } } : true });
+          if (cancelled) { audioOnly.getTracks().forEach((t) => t.stop()); return; }
+          local.current?.getTracks().forEach((t) => t.stop());
+          local.current = audioOnly;
+          audioOnly.getAudioTracks().forEach((t) => (t.enabled = micOn));
+          setLocalStream(audioOnly);
+          setCamOn(false);
+          pcs.current.forEach((pc) => audioOnly.getTracks().forEach((track) => {
+            const s = pc.getSenders().find((x) => x.track?.kind === track.kind);
+            if (s) s.replaceTrack(track); else pc.addTrack(track, audioOnly);
+          }));
+          try {
+            const devs = await navigator.mediaDevices.enumerateDevices();
+            if (!cancelled) {
+              setCams(devs.filter((d) => d.kind === 'videoinput').map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Kamera ${i + 1}` })));
+              setMics(devs.filter((d) => d.kind === 'audioinput').map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Mikrofon ${i + 1}` })));
+            }
+          } catch { /* ignore */ }
+          setError('Kamera tidak bisa diakses (mungkin dipakai app lain / izin kamera belum diberikan). Kamu gabung dengan audio dulu — pilih kamera lain di kontrol untuk coba lagi.');
+        } catch (e2) {
+          setError(e2 instanceof Error ? e2.message : 'Tidak bisa akses kamera/mikrofon. Cek izin kamera & mikrofon browser.');
+        }
       }
     })();
     return () => { cancelled = true; };
@@ -198,12 +223,13 @@ export function useMeeting({ roomId, selfName, active }: { roomId: string; selfN
       const audio = local.current?.getAudioTracks() || [];
       setLocalStream(new MediaStream([track, ...audio]));
       setSharing(true);
-    } catch (e: any) {
-      if (e && e.name === 'NotAllowedError') {
+    } catch (err) {
+      const e = err as { name?: string; message?: string };
+      if (e.name === 'NotAllowedError') {
         // User cancelled screensharing source selection
         return;
       }
-      setError(e?.message || 'Timeout starting video source / Gagal akses screen share. Jika di macOS, silakan izinkan "Perekaman Layar" (Screen Recording) di System Settings.');
+      setError(e.message || 'Timeout starting video source / Gagal akses screen share. Jika di macOS, silakan izinkan "Perekaman Layar" (Screen Recording) di System Settings.');
     }
   }, [sharing, stopShare]);
 
