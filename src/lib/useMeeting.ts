@@ -189,6 +189,7 @@ export function useMeeting({ roomId, selfName, active }: { roomId: string; selfN
   const toggleShare = useCallback(async () => {
     if (sharing) { stopShare(); return; }
     try {
+      setError(null);
       const ds = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
       screen.current = ds;
       const track = ds.getVideoTracks()[0];
@@ -197,8 +198,16 @@ export function useMeeting({ roomId, selfName, active }: { roomId: string; selfN
       const audio = local.current?.getAudioTracks() || [];
       setLocalStream(new MediaStream([track, ...audio]));
       setSharing(true);
-    } catch { /* user cancelled picker */ }
+    } catch (e: any) {
+      if (e && e.name === 'NotAllowedError') {
+        // User cancelled screensharing source selection
+        return;
+      }
+      setError(e?.message || 'Timeout starting video source / Gagal akses screen share. Jika di macOS, silakan izinkan "Perekaman Layar" (Screen Recording) di System Settings.');
+    }
   }, [sharing, stopShare]);
 
-  return { localStream, peers, cams, mics, camId, setCamId, micId, setMicId, micOn, camOn, sharing, toggleMic, toggleCam, toggleShare, error };
+  const clearError = () => setError(null);
+
+  return { localStream, peers, cams, mics, camId, setCamId, micId, setMicId, micOn, camOn, sharing, toggleMic, toggleCam, toggleShare, error, clearError };
 }

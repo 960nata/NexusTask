@@ -173,7 +173,46 @@ export default function MeetingModal({ onClose }: { onClose: () => void }) {
         ) : (
           /* ── ROOM ── */
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-            {mt.error && <div style={{ background: '#2a1215', color: '#ff8a80', fontSize: 12, padding: '8px 16px' }}>{mt.error}</div>}
+            {mt.error && (
+              <div style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(0,0,0,.85)',
+                backdropFilter: 'blur(5px)',
+                zIndex: 100,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 24
+              }}>
+                <div style={{
+                  background: '#1A1A1A',
+                  border: '1px solid #FF6B6B',
+                  borderRadius: 16,
+                  padding: 24,
+                  maxWidth: 420,
+                  width: '100%',
+                  textAlign: 'center',
+                  boxShadow: '0 10px 40px rgba(255, 107, 107, 0.15)'
+                }}>
+                  <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
+                  <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 12 }}>Akses Media / Screen Share Gagal</h3>
+                  <p style={{ fontSize: 12, color: '#bbb', lineHeight: 1.5, marginBottom: 20 }}>{mt.error}</p>
+                  <button onClick={mt.clearError} style={{
+                    background: '#FF6B6B',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 10,
+                    padding: '10px 24px',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}>
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div style={{ flex: 1, overflow: 'auto', padding: 16, display: 'grid', gap: 12, gridTemplateColumns: `repeat(${Math.min(2, 1 + mt.peers.length) || 1}, 1fr)` }}>
               <VideoTile stream={mt.localStream} label={me?.name || 'Saya'} you camOff={!mt.camOn} fallbackId={me?.id} />
