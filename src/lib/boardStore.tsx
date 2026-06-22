@@ -6,6 +6,16 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { auth } from '@/lib/firebase';
+import { 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged, 
+  updateProfile 
+} from 'firebase/auth';
 
 /* ──────────────────────────────────────────────────────────
    Types
@@ -49,6 +59,7 @@ export type User = {
   role: Role;
   color: string;    // gradient fallback when no photo
   avatar?: string;  // data URL photo
+  email?: string;   // mapped from Firebase Auth
 };
 
 export type NotifKind = 'card' | 'move' | 'user' | 'comment' | 'ai';
@@ -259,6 +270,16 @@ type BoardCtx = {
   moveCard: (cardId: string, fromCol: string, toCol: string, toIndex?: number) => void;
   moveColumn: (fromId: string, toId: string) => void;
   reset: () => void;
+
+  // Firebase Auth additions
+  me: User | null;
+  toasts: { id: string; text: string; kind: NotifKind }[];
+  loadingAuth: boolean;
+  loginWithGoogle: () => Promise<void>;
+  loginWithEmail: (email: string, pass: string) => Promise<void>;
+  registerWithEmail: (email: string, pass: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
+  continueAsGuest: () => void;
 };
 
 const Ctx = createContext<BoardCtx | null>(null);
@@ -274,8 +295,33 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
   const [scheduledMeets, setScheduledMeets] = useState<ScheduledMeet[]>([]);
   const [loaded, setLoaded] = useState(false);
 
-  const pushNotif = (text: string, kind: NotifKind) =>
+  // Auth & Toast States
+  const [fbUser, setFbUser] = useState<any | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
+  const [guestMode, setGuestMode] = useState(false);
+  const [toasts, setToasts] = useState<{ id: string; text: string; kind: NotifKind }[]>([]);
+
+  const pushNotif = (text: string, kind: NotifKind) => {
     setNotifications((ns) => [{ id: uid(), text, ts: Date.now(), read: false, kind }, ...ns].slice(0, 50));
+    
+    // Push visual toast
+    const toastId = uid();
+    setToasts((prev) => [...prev, { id: toastId, text, kind }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== toastId));
+    }, 4000);
+
+    // HTML5 OS-level notifications
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'granted' && document.hidden) {
+        try {
+          new Notification('TaskFlow Update', { body: text });
+        } catch (e) {
+          console.error('Failed to trigger OS notification:', e);
+        }
+      }
+    }
+  };
 
   // hydrate
   useEffect(() => {
@@ -315,6 +361,118 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ boards, activeId, users, notifications, theme, chat, meeting, scheduledMeets })); } catch { /* ignore */ }
     }
   }, [boards, activeId, users, notifications, theme, chat, meeting, scheduledMeets, loaded]);
+
+  // Firebase Auth state observer
+  useEffect(() => {
+    if (!auth) {
+      setLoadingAuth(false);
+      return;
+    }
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setFbUser(user);
+      setLoadingAuth(false);
+      if (user) {
+        setGuestMode(false);
+        const email = user.email || '';
+        setUsers((prevUsers) => {
+          const existing = prevUsers.find((u) => u.email === email);
+          if (existing) {
+            // Update details if they changed on the provider side
+            return prevUsers.map((u) =>
+              u.email === email
+                ? {
+                    ...u,
+                    name: user.displayName || u.name,
+                    avatar: user.photoURL || u.avatar,
+                  }
+                : u
+            );
+          } else {
+            // Generate initials
+            const baseId = initialsFromName(user.displayName || email || 'U');
+            let id = baseId;
+            let n = 2;
+            while (prevUsers.some((u) => u.id === id)) {
+              id = baseId.slice(0, 1) + n++;
+            }
+            const color = USER_COLORS[prevUsers.length % USER_COLORS.length];
+            // Admin assignment for disdukp@gmail.com
+            const role: Role = email === 'disdukp@gmail.com' ? 'Superadmin' : 'Member';
+            const newUser: User = {
+              id,
+              name: user.displayName || email.split('@')[0] || 'User Baru',
+              role,
+              color,
+              avatar: user.photoURL || undefined,
+              email,
+            };
+            return [...prevUsers, newUser];
+          }
+        });
+      }
+    });
+    return unsub;
+  }, []);
+
+  // Request browser notification permissions on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      try {
+        Notification.requestPermission();
+      } catch (e) {
+        console.error('Failed to request notification permission:', e);
+      }
+    }
+  }, []);
+
+  // Compute active user context
+  const me = useMemo<User | null>(() => {
+    if (loadingAuth) return null;
+    if (fbUser) {
+      const email = fbUser.email || '';
+      return users.find((u) => u.email === email) || null;
+    }
+    if (guestMode) {
+      return {
+        id: 'GST',
+        name: 'Tamu (Guest)',
+        role: 'Member',
+        color: 'linear-gradient(135deg,#555,#777)',
+      };
+    }
+    return null;
+  }, [fbUser, users, loadingAuth, guestMode]);
+
+  const loginWithGoogle = async () => {
+    if (!auth) return;
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  };
+
+  const loginWithEmail = async (email: string, pass: string) => {
+    if (!auth) return;
+    await signInWithEmailAndPassword(auth, email, pass);
+  };
+
+  const registerWithEmail = async (email: string, pass: string, name: string) => {
+    if (!auth) return;
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    if (cred.user) {
+      await updateProfile(cred.user, { displayName: name });
+      // update state
+      setFbUser({ ...cred.user, displayName: name });
+    }
+  };
+
+  const logout = async () => {
+    if (!auth) return;
+    await signOut(auth);
+    setGuestMode(false);
+  };
+
+  const continueAsGuest = () => {
+    setGuestMode(true);
+  };
 
   const updateActiveColumns = (fn: (cols: Column[]) => Column[]) =>
     setBoards((bs) => bs.map((b) => b.id === activeId ? { ...b, columns: fn(b.columns) } : b));
@@ -438,9 +596,19 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
           return next;
         }),
       reset: () => { const s = seed(); setBoards(s); setActiveId(s[0].id); setUsers(seedUsers()); setNotifications([]); setThemeState('lime'); setChat([]); setMeeting(null); setScheduledMeets([]); },
+      
+      // Auth additions
+      me,
+      toasts,
+      loadingAuth,
+      loginWithGoogle,
+      loginWithEmail,
+      registerWithEmail,
+      logout,
+      continueAsGuest,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [boards, activeId, users, notifications, theme, chat, meeting, scheduledMeets, loaded]);
+  }, [boards, activeId, users, notifications, theme, chat, meeting, scheduledMeets, loaded, fbUser, loadingAuth, guestMode, toasts]);
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;
 }

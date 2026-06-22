@@ -153,7 +153,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
             <Link href="/app" className="hover:text-[#AAFF00] text-[#AAFF00]/90 transition-colors duration-250">Buka Aplikasi</Link>
           </div>
           
-          <div className="text-[10px] text-zinc-600 text-center md:text-right">
+          <div className="text-[10px] text-zinc-500 text-center md:text-right">
             &copy; {new Date().getFullYear()} TaskFlow. Self-hosted & AI Powered.<br />
             Semua hak cipta dilindungi.
           </div>

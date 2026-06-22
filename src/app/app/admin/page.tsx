@@ -21,9 +21,44 @@ function Stat({ label, value }: { label: string; value: number | string }) {
 
 export default function AdminPage() {
   const board = useBoard();
+  const { me } = board;
+
   const totalCards = board.boards.reduce((n, b) => n + b.columns.reduce((m, c) => m + c.cards.length, 0), 0);
   const totalLists = board.boards.reduce((n, b) => n + b.columns.length, 0);
   const sa = board.users.find((u) => u.role === 'Superadmin');
+
+  // Access Control check for Superadmin / Owner
+  if (!me || (me.role !== 'Superadmin' && me.role !== 'Owner')) {
+    return (
+      <>
+        <PageHeader title="Admin Panel" subtitle="Akses Ditolak" />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20, gap: 16 }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255, 107, 107, 0.08)', border: '1px solid rgba(255, 107, 107, 0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
+            🔒
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#fff' }}>Akses Terbatas</h3>
+            <p style={{ fontSize: 12, color: '#666', marginTop: 6, maxWidth: 300, lineHeight: 1.5 }}>
+              Anda login sebagai <span style={{ color: 'var(--accent)', fontWeight: 700 }}>{me ? me.name : 'Tamu'}</span> dengan peran <span style={{ color: '#fff', fontWeight: 700 }}>{me ? me.role : 'None'}</span>. Halaman ini hanya dapat diakses oleh peran <strong>Owner</strong> atau <strong>Superadmin</strong>.
+            </p>
+          </div>
+          <a href="/app" style={{
+            background: 'var(--accent)',
+            color: '#0E0E0E',
+            fontWeight: 800,
+            fontSize: 12,
+            padding: '8px 20px',
+            borderRadius: 10,
+            textDecoration: 'none',
+            marginTop: 10,
+            boxShadow: '0 4px 15px rgba(170,255,0,0.15)'
+          }}>
+            Kembali ke Papan Kerja
+          </a>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

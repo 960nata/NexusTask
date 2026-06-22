@@ -288,7 +288,19 @@ export default function BoardView() {
   const memberIds = board.users.map((u) => u.id);
 
   const onColumnDrop = (toCol: string) => {
-    if (colDrag.current) { board.moveColumn(colDrag.current, toCol); colDrag.current = null; setOverCol(null); return; }
+    if (colDrag.current) {
+      const me = board.me;
+      if (!me || (me.role !== 'Superadmin' && me.role !== 'Owner' && me.role !== 'Manager')) {
+        board.pushNotif('Hanya Superadmin, Owner, atau Manager yang dapat memindahkan posisi list', 'card');
+        colDrag.current = null;
+        setOverCol(null);
+        return;
+      }
+      board.moveColumn(colDrag.current, toCol);
+      colDrag.current = null;
+      setOverCol(null);
+      return;
+    }
     const d = drag.current;
     if (!d) return;
     const idx = dropIndex.current && dropIndex.current.col === toCol ? dropIndex.current.index : undefined;
@@ -320,8 +332,24 @@ export default function BoardView() {
                 addCard: (t) => board.addCard(col.id, t),
                 openCard: (id) => setSelected({ colId: col.id, cardId: id }),
                 deleteCard: (id) => board.deleteCard(col.id, id),
-                rename: (n) => board.renameCol(col.id, n),
-                deleteCol: () => board.deleteCol(col.id),
+                rename: (n) => {
+                  const me = board.me;
+                  if (!me || (me.role !== 'Superadmin' && me.role !== 'Owner' && me.role !== 'Manager')) {
+                    board.pushNotif('Hanya Superadmin, Owner, atau Manager yang dapat mengubah nama list', 'card');
+                    return;
+                  }
+                  board.renameCol(col.id, n);
+                },
+                deleteCol: () => {
+                  const me = board.me;
+                  if (!me || (me.role !== 'Superadmin' && me.role !== 'Owner' && me.role !== 'Manager')) {
+                    board.pushNotif('Hanya Superadmin, Owner, atau Manager yang dapat menghapus list', 'card');
+                    return;
+                  }
+                  if (confirm('Hapus list? Semua kartu di dalamnya akan hilang.')) {
+                    board.deleteCol(col.id);
+                  }
+                },
                 cardDragStart: (id) => { drag.current = { cardId: id, fromCol: col.id }; colDrag.current = null; },
                 cardDragOver: (id) => { const i = col.cards.findIndex((k) => k.id === id); if (i !== -1) dropIndex.current = { col: col.id, index: i }; setOverCol(col.id); },
                 colDragStart: () => { colDrag.current = col.id; drag.current = null; },
@@ -329,7 +357,17 @@ export default function BoardView() {
                 colDrop: () => onColumnDrop(col.id),
               }} />
           ))}
-          <button onClick={board.addColumn} style={{ width: 272, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '12px 0', borderRadius: 16, border: '1px dashed #222', cursor: 'pointer', background: 'transparent', color: '#444' }}>
+          <button 
+            onClick={() => {
+              const me = board.me;
+              if (!me || (me.role !== 'Superadmin' && me.role !== 'Owner' && me.role !== 'Manager')) {
+                board.pushNotif('Hanya Superadmin, Owner, atau Manager yang dapat menambah list', 'card');
+                return;
+              }
+              board.addColumn();
+            }}
+            style={{ width: 272, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '12px 0', borderRadius: 16, border: '1px dashed #222', cursor: 'pointer', background: 'transparent', color: '#444' }}
+          >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><line x1="12" y1="5" x2="12" y2="19" stroke="#444" strokeWidth="2.5" strokeLinecap="round" /><line x1="5" y1="12" x2="19" y2="12" stroke="#444" strokeWidth="2.5" strokeLinecap="round" /></svg>
             <span style={{ fontSize: 12 }}>Tambah List</span>
           </button>

@@ -2,6 +2,8 @@ import { BoardProvider } from '@/lib/boardStore';
 import Sidebar from '@/components/Sidebar';
 import ThemeApplier from '@/components/ThemeApplier';
 import ChatFab from '@/components/ChatFab';
+import AuthOverlay from '@/components/AuthOverlay';
+import ToastContainer from '@/components/ToastContainer';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -14,6 +16,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
       <ChatFab />
+      <AuthOverlay />
+      <ToastContainer />
     </BoardProvider>
   );
 }

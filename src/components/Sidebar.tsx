@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useBoard } from '@/lib/boardStore';
@@ -17,8 +17,8 @@ const NAV = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { users } = useBoard();
-  const me = users.find((u) => u.role === 'Owner') || users[0];
+  const { me, logout } = useBoard();
+  const [profileOpen, setProfileOpen] = useState(false);
   const isActive = (href: string) => (href === '/app' ? pathname === '/app' : pathname.startsWith(href));
 
   return (
@@ -55,9 +55,91 @@ export default function Sidebar() {
         {Ic.settings(isActive('/app/settings') ? '#0E0E0E' : '#555')}
       </Link>
 
-      <Link href="/app/team" title={me ? `${me.name} (${me.role})` : 'Team'} style={{ marginTop: 10, flex: 'none', display: 'flex' }}>
-        {me ? <UserAvatar id={me.id} size={34} ring="var(--accent-dark)" /> : null}
-      </Link>
+      {/* User profile with logout popup */}
+      <div style={{ position: 'relative', marginTop: 10, flex: 'none' }}>
+        <button 
+          onClick={() => setProfileOpen(!profileOpen)}
+          style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}
+          title={me ? `${me.name} (${me.role})` : 'Akun'}
+        >
+          {me ? <UserAvatar id={me.id} size={34} ring="var(--accent-dark)" /> : (
+            <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#1c1c1c', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #222', fontSize: 14 }}>
+              👤
+            </div>
+          )}
+        </button>
+
+        {profileOpen && (
+          <>
+            <div onClick={() => setProfileOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 80 }} />
+            <div style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 48,
+              width: 220,
+              background: '#161616',
+              border: '1px solid #262626',
+              borderRadius: 14,
+              padding: 14,
+              zIndex: 90,
+              boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10
+            }}>
+              {me ? (
+                <>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.name}</div>
+                    <div style={{ fontSize: 10, color: '#666', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.email || 'Akun Tamu'}</div>
+                    <div style={{
+                      display: 'inline-block',
+                      fontSize: 9,
+                      fontWeight: 800,
+                      color: me.role === 'Superadmin' ? '#FF6BAA' : me.role === 'Owner' ? 'var(--accent)' : me.role === 'Manager' ? '#4A90FF' : '#888',
+                      background: me.role === 'Superadmin' ? '#3a1a2a' : me.role === 'Owner' ? 'var(--accent-dark)' : me.role === 'Manager' ? '#0a1a3a' : '#1C1C1C',
+                      padding: '2px 8px',
+                      borderRadius: 6,
+                      marginTop: 6
+                    }}>
+                      {me.role}
+                    </div>
+                  </div>
+                  <hr style={{ border: 'none', borderTop: '1px solid #222', margin: '4px 0' }} />
+                  <Link 
+                    href="/app/team"
+                    onClick={() => setProfileOpen(false)}
+                    style={{ fontSize: 12, color: '#ddd', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <span>👥</span> Kelola Tim
+                  </Link>
+                  <button 
+                    onClick={() => { logout(); setProfileOpen(false); }}
+                    style={{
+                      background: 'rgba(255,107,107,0.08)',
+                      border: '1px solid rgba(255,107,107,0.2)',
+                      borderRadius: 8,
+                      color: '#FF6B6B',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: '6px 0',
+                      cursor: 'pointer',
+                      width: '100%',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    Keluar (Sign Out)
+                  </button>
+                </>
+              ) : (
+                <div style={{ fontSize: 12, color: '#888', textAlign: 'center' }}>
+                  Belum masuk
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
