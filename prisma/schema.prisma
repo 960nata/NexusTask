@@ -1,5 +1,6 @@
-// Schema matches the current app's data model (see src/lib/boardStore.tsx).
-// No auth yet — that's a later step.
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider  = "postgresql"
@@ -7,50 +8,121 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
-model User {
-  id     String  @id // initials, e.g. "JD"
-  name   String
-  role   String // Superadmin | Owner | Manager | Member
-  color  String
-  avatar String? // data URL or remote URL
+model Workspace {
+  id          String   @id
+  name        String
+  description String
+  emoji       String
+  boards      Board[]
 }
 
 model Board {
-  id       String   @id
-  name     String
-  color    String
-  position Int      @default(0)
-  columns  Column[]
+  id          String       @id
+  name        String
+  workspaceId String
+  background  String
+  emoji       String
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  lists       List[]
+  butlerRules ButlerRule[]
 }
 
-model Column {
-  id        String @id
-  name      String
-  dotBg     String
-  dotBorder String
-  position  Int    @default(0)
-  boardId   String
-  board     Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  cards     Card[]
+model List {
+  id       String @id
+  name     String
+  boardId  String
+  position Int
+  board    Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards    Card[]
 }
 
 model Card {
-  id          String   @id
+  id          String       @id
   title       String
-  due         String?
-  progress    Int?
-  featured    Boolean  @default(false)
-  description String?
-  labels      String[]
-  members     String[]
-  checklist   Json? // [{ id, text, done }]
-  comments    Json? // [{ id, author, text, ts }]
-  position    Int      @default(0)
-  columnId    String
-  column      Column   @relation(fields: [columnId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
+  description String
+  listId      String
+  position    Int
+  dueDate     String?
+  coverColor  String?
+  coverImage  String?
+  archived    Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  list        List         @relation(fields: [listId], references: [id], onDelete: Cascade)
+  labels      CardLabel[]
+  members     CardMember[]
+  checklists  Checklist[]
+  comments    Comment[]
+  attachments Attachment[]
+  activities  Activity[]
+}
+
+model CardLabel {
+  id     String @id @default(uuid())
+  cardId String
+  color  String
+  text   String
+  card   Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+}
+
+model CardMember {
+  id     String @id @default(uuid())
+  cardId String
+  name   String
+  card   Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+}
+
+model Checklist {
+  id     String          @id
+  name   String
+  cardId String
+  card   Card            @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  items  ChecklistItem[]
+}
+
+model ChecklistItem {
+  id          String    @id
+  text        String
+  completed   Boolean
+  checklistId String
+  checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+}
+
+model Comment {
+  id        String   @id
+  author    String
+  text      String
+  createdAt DateTime @default(now())
+  cardId    String
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+}
+
+model Attachment {
+  id     String @id
+  name   String
+  url    String
+  type   String
+  cardId String
+  card   Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+}
+
+model Activity {
+  id        String   @id
+  action    String
+  timestamp DateTime @default(now())
+  cardId    String
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+}
+
+model ButlerRule {
+  id      String  @id
+  trigger String
+  action  String
+  active  Boolean @default(true)
+  boardId String
+  board   Board   @relation(fields: [boardId], references: [id], onDelete: Cascade)
+}
+
+model Member {
+  id   String @id @default(uuid())
+  name String @unique
 }
