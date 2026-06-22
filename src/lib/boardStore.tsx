@@ -271,7 +271,6 @@ type BoardCtx = {
   moveColumn: (fromId: string, toId: string) => void;
   reset: () => void;
 
-  // Firebase Auth additions
   me: User | null;
   toasts: { id: string; text: string; kind: NotifKind }[];
   loadingAuth: boolean;
@@ -295,7 +294,6 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
   const [scheduledMeets, setScheduledMeets] = useState<ScheduledMeet[]>([]);
   const [loaded, setLoaded] = useState(false);
 
-  // Auth & Toast States
   const [fbUser, setFbUser] = useState<any | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [guestMode, setGuestMode] = useState(false);
@@ -304,14 +302,12 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
   const pushNotif = (text: string, kind: NotifKind) => {
     setNotifications((ns) => [{ id: uid(), text, ts: Date.now(), read: false, kind }, ...ns].slice(0, 50));
     
-    // Push visual toast
     const toastId = uid();
     setToasts((prev) => [...prev, { id: toastId, text, kind }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== toastId));
     }, 4000);
 
-    // HTML5 OS-level notifications
     if (typeof window !== 'undefined' && 'Notification' in window) {
       if (Notification.permission === 'granted' && document.hidden) {
         try {
@@ -362,7 +358,6 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
     }
   }, [boards, activeId, users, notifications, theme, chat, meeting, scheduledMeets, loaded]);
 
-  // Firebase Auth state observer
   useEffect(() => {
     if (!auth) {
       setLoadingAuth(false);
@@ -377,7 +372,6 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
         setUsers((prevUsers) => {
           const existing = prevUsers.find((u) => u.email === email);
           if (existing) {
-            // Update details if they changed on the provider side
             return prevUsers.map((u) =>
               u.email === email
                 ? {
@@ -388,7 +382,6 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
                 : u
             );
           } else {
-            // Generate initials
             const baseId = initialsFromName(user.displayName || email || 'U');
             let id = baseId;
             let n = 2;
@@ -396,7 +389,6 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
               id = baseId.slice(0, 1) + n++;
             }
             const color = USER_COLORS[prevUsers.length % USER_COLORS.length];
-            // Admin assignment for disdukp@gmail.com
             const role: Role = email === 'disdukp@gmail.com' ? 'Superadmin' : 'Member';
             const newUser: User = {
               id,
@@ -414,7 +406,6 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
     return unsub;
   }, []);
 
-  // Request browser notification permissions on mount
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
       try {
@@ -425,7 +416,6 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Compute active user context
   const me = useMemo<User | null>(() => {
     if (loadingAuth) return null;
     if (fbUser) {
@@ -459,7 +449,6 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     if (cred.user) {
       await updateProfile(cred.user, { displayName: name });
-      // update state
       setFbUser({ ...cred.user, displayName: name });
     }
   };
@@ -596,8 +585,6 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
           return next;
         }),
       reset: () => { const s = seed(); setBoards(s); setActiveId(s[0].id); setUsers(seedUsers()); setNotifications([]); setThemeState('lime'); setChat([]); setMeeting(null); setScheduledMeets([]); },
-      
-      // Auth additions
       me,
       toasts,
       loadingAuth,

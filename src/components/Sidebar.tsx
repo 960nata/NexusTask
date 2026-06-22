@@ -40,7 +40,6 @@ export default function Sidebar() {
         );
       })}
 
-      {/* notifications (decorative dot) */}
       <div style={{ width: 42, height: 42, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', background: '#1C1C1C', position: 'relative', cursor: 'pointer' }}>
         {Ic.bell('#555')}
         <div style={{ position: 'absolute', top: 8, right: 8, width: 7, height: 7, background: 'var(--accent)', borderRadius: '50%', border: '2px solid #111' }} />
@@ -55,7 +54,6 @@ export default function Sidebar() {
         {Ic.settings(isActive('/app/settings') ? '#0E0E0E' : '#555')}
       </Link>
 
-      {/* User profile with logout popup */}
       <div style={{ position: 'relative', marginTop: 10, flex: 'none' }}>
         <button 
           onClick={() => setProfileOpen(!profileOpen)}

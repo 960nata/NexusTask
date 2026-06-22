@@ -27,7 +27,6 @@ export default function AdminPage() {
   const totalLists = board.boards.reduce((n, b) => n + b.columns.length, 0);
   const sa = board.users.find((u) => u.role === 'Superadmin');
 
-  // Access Control check for Superadmin / Owner
   if (!me || (me.role !== 'Superadmin' && me.role !== 'Owner')) {
     return (
       <>

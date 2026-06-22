@@ -21,7 +21,6 @@ export default function AuthOverlay() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // If auth is loading, or user is already authenticated, don't show the overlay
   if (loadingAuth || me) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,7 +97,6 @@ export default function AuthOverlay() {
         flexDirection: 'column',
         gap: 20
       }}>
-        {/* Logo and title */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
           <div style={{ width: 44, height: 44, background: 'var(--accent)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', boxShadow: '0 8px 20px rgba(170,255,0,0.2)' }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -110,7 +108,6 @@ export default function AuthOverlay() {
           <p style={{ fontSize: 12, color: '#777', maxWidth: 280 }}>Mulai kelola proyek dan tim Anda secara real-time dan terorganisasi.</p>
         </div>
 
-        {/* Tab Toggle */}
         <div style={{ display: 'flex', background: '#09090B', padding: 4, borderRadius: 12, border: '1px solid #1c1c21' }}>
           <button 
             type="button"
@@ -168,7 +165,6 @@ export default function AuthOverlay() {
           </div>
         )}
 
-        {/* Auth form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {mode === 'register' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -261,14 +257,12 @@ export default function AuthOverlay() {
           </button>
         </form>
 
-        {/* Divider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '5px 0' }}>
           <div style={{ flex: 1, height: 1, background: '#1c1c21' }} />
           <span style={{ fontSize: 10, color: '#444', fontWeight: 700 }}>ATAU</span>
           <div style={{ flex: 1, height: 1, background: '#1c1c21' }} />
         </div>
 
-        {/* Google sign in */}
         <button 
           type="button" 
           onClick={handleGoogleSignIn}
@@ -299,7 +293,6 @@ export default function AuthOverlay() {
           <span>Masuk dengan Google</span>
         </button>
 
-        {/* Continue as Guest */}
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 5 }}>
           <button 
             type="button" 

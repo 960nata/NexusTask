@@ -12,15 +12,12 @@ const firebaseConfig = {
   measurementId: "G-60RV1Z91FN"
 };
 
-// Initialize Firebase (safely checks for server-side / hot-reload)
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Analytics (safely checks for server-side and browser capability)
 const analytics = typeof window !== "undefined" 
   ? isSupported().then((supported) => supported ? getAnalytics(app) : null) 
   : null;
 
-// Initialize Auth
 const auth = typeof window !== "undefined" ? getAuth(app) : null;
 
 export { app, analytics, auth };
